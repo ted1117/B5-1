@@ -7,7 +7,7 @@ In-Memory Key-Value 저장소의 핵심 동작을 제공한다. 네트워크/영
 from __future__ import annotations
 
 import time
-from collections.abc import Callable
+from typing import Callable, cast
 
 from doubly_linked_list import DoublyLinkedList, Node
 from hash_map import HashMap
@@ -89,15 +89,15 @@ class MiniRedisStore:
         if self._maxmemory <= 0:
             return
         while self._used_memory > self._maxmemory and len(self._lru) > 0:
-            victim = self._lru.remove_back()
-            if victim is None:
+            tail = self._lru._tail
+            if tail is None:
                 break
-            key = victim.data  # type: ignore[assignment]
-            entry = self._table.get(key)
-            if entry is not None:
-                self._used_memory -= _bytelen(key) + _bytelen(entry.value)
-                self._table.remove(key)
-                self._evicted_keys += 1
+            key = cast(str, tail.data)
+            entry = cast("_Entry | None", self._table.get(key))
+            if entry is None:
+                break
+            self._drop(key, entry)
+            self._evicted_keys += 1
 
     # ------------------------------------------------------------------
     # String 타입 명령어
