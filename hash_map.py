@@ -15,8 +15,7 @@ class HashMap:
         """문자마다 31을 곱해 누적한 해시를 버킷 인덱스로 변환한다."""
         value = 0
         for character in key:
-            # 긴 키에서도 정수 크기가 계속 커지지 않도록 제한한다.
-            value = (value * 31 + ord(character)) & 0xFFFFFFFF
+            value = value * 31 + ord(character)
         return value % len(self._buckets)
 
     def _find_node(self, key: str) -> Node | None:

@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 560" width="880" height="560" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif" font-size="14">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#475569"/>
+    </marker>
+  </defs>
+  <rect width="880" height="560" fill="#ffffff"/>
+
+  <!-- HashMap container -->
+  <rect x="20" y="20" width="460" height="312" rx="12" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+  <text x="40" y="48" font-weight="700" fill="#1e3a8a">HashMap  (버킷 배열 + 체인)</text>
+
+  <!-- buckets -->
+  <g stroke="#2563eb" stroke-width="2" fill="#dbeafe">
+    <rect x="40" y="70" width="60" height="34"/>
+    <rect x="40" y="112" width="60" height="34"/>
+    <rect x="40" y="154" width="60" height="34"/>
+    <rect x="40" y="196" width="60" height="34"/>
+    <rect x="40" y="238" width="60" height="34"/>
+    <rect x="40" y="280" width="60" height="34"/>
+  </g>
+  <g text-anchor="middle" fill="#1e3a8a">
+    <text x="70" y="92">0</text>
+    <text x="70" y="134">1</text>
+    <text x="70" y="176">2</text>
+    <text x="70" y="218">3</text>
+    <text x="70" y="260">…</text>
+    <text x="70" y="302">15</text>
+  </g>
+  <g fill="#94a3b8" font-size="13">
+    <text x="115" y="92">None</text>
+    <text x="115" y="176">None</text>
+    <text x="115" y="302">None</text>
+  </g>
+
+  <!-- bucket 1: one node -->
+  <line x1="100" y1="129" x2="128" y2="129" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="130" y="112" width="140" height="34" rx="8" fill="#ffedd5" stroke="#ea580c" stroke-width="2"/>
+  <text x="200" y="134" text-anchor="middle" fill="#7c2d12">("age", _Entry)</text>
+
+  <!-- bucket 3: two nodes (collision) -->
+  <line x1="100" y1="213" x2="128" y2="213" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="130" y="196" width="125" height="34" rx="8" fill="#ffedd5" stroke="#ea580c" stroke-width="2"/>
+  <text x="192" y="218" text-anchor="middle" fill="#7c2d12">("id", _Entry)</text>
+  <line x1="257" y1="213" x2="313" y2="213" stroke="#475569" stroke-width="2" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+  <rect x="315" y="196" width="140" height="34" rx="8" fill="#ffedd5" stroke="#ea580c" stroke-width="2"/>
+  <text x="385" y="218" text-anchor="middle" fill="#7c2d12">("name", _Entry)</text>
+  <text x="292" y="256" text-anchor="middle" fill="#ea580c" font-size="12">같은 버킷 = 충돌, 체인 뒤에 추가</text>
+
+  <!-- node -> Entry -->
+  <line x1="455" y1="213" x2="558" y2="213" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- _Entry -->
+  <rect x="560" y="150" width="240" height="130" rx="10" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+  <text x="680" y="178" text-anchor="middle" font-weight="700" fill="#14532d">_Entry</text>
+  <text x="580" y="208" fill="#14532d">value</text>
+  <text x="580" y="234" fill="#14532d">lru_node</text>
+  <text x="580" y="260" fill="#14532d">expire_at</text>
+
+  <!-- LRU list -->
+  <text x="500" y="388" font-weight="700" fill="#7c2d12">LRU 리스트</text>
+  <rect x="500" y="400" width="100" height="44" rx="8" fill="#ffedd5" stroke="#ea580c" stroke-width="2"/>
+  <text x="550" y="428" text-anchor="middle" fill="#7c2d12">"age"</text>
+  <rect x="640" y="400" width="100" height="44" rx="8" fill="#ffedd5" stroke="#ea580c" stroke-width="2"/>
+  <text x="690" y="428" text-anchor="middle" fill="#7c2d12">"name"</text>
+  <rect x="780" y="400" width="60" height="44" rx="8" fill="#ffedd5" stroke="#ea580c" stroke-width="2"/>
+  <text x="810" y="428" text-anchor="middle" fill="#7c2d12">…</text>
+  <line x1="602" y1="422" x2="638" y2="422" stroke="#475569" stroke-width="2" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+  <line x1="742" y1="422" x2="778" y2="422" stroke="#475569" stroke-width="2" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+  <text x="550" y="464" text-anchor="middle" fill="#7c2d12" font-size="12">head (최근)</text>
+  <text x="810" y="464" text-anchor="middle" fill="#7c2d12" font-size="12">tail (오래됨)</text>
+
+  <!-- Entry.lru_node -> node -->
+  <line x1="690" y1="280" x2="690" y2="398" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="700" y="344" fill="#475569" font-size="12">lru_node</text>
+
+  <!-- LRU node(key) -> HashMap -->
+  <path d="M500,422 H250 V334" fill="none" stroke="#475569" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrow)"/>
+  <text x="260" y="410" fill="#475569" font-size="12">노드의 키로 조회</text>
+
+  <!-- TTL heap -->
+  <rect x="500" y="480" width="300" height="64" rx="10" fill="#f3e8ff" stroke="#9333ea" stroke-width="2"/>
+  <text x="650" y="508" text-anchor="middle" font-weight="700" fill="#581c87">TTL 힙 (MinHeap)</text>
+  <text x="650" y="530" text-anchor="middle" fill="#581c87">(expire_at, key)</text>
+
+  <!-- heap key -> HashMap -->
+  <path d="M500,512 H80 V334" fill="none" stroke="#475569" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrow)"/>
+  <text x="90" y="500" fill="#475569" font-size="12">힙의 키로 조회</text>
+</svg>

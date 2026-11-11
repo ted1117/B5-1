@@ -1,9 +1,3 @@
-"""Mini Redis 저장 엔진.
-
-HashMap(키→값), DoublyLinkedList(LRU 순서), MinHeap(TTL 만료 시간)을 조립해
-In-Memory Key-Value 저장소의 핵심 동작을 제공한다. 네트워크/영속성/스레딩은 없다.
-"""
-
 from __future__ import annotations
 
 import time
@@ -40,12 +34,8 @@ class MiniRedisStore:
     """세 자료구조를 조립한 Key-Value 저장 엔진."""
 
     def __init__(self, clock: Callable[[], float] = time.time) -> None:
-        # 키 → _Entry 매핑.
         self._table = HashMap()
-        # LRU 순서: front(head)가 가장 최근 사용, back(tail)이 가장 오래 사용.
-        # 각 노드의 data에는 키 문자열을 저장한다.
         self._lru = DoublyLinkedList()
-        # (expire_at, key) 최소 힙. Lazy/active deletion으로 만료를 관리한다.
         self._ttl_heap = MinHeap()
 
         self._maxmemory = 0  # 0은 무제한을 의미한다.

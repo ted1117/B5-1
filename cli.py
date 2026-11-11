@@ -1,12 +1,4 @@
-"""Mini Redis CLI REPL.
-
-한 줄 입력을 파싱해 MiniRedisStore에 명령을 위임하고, Redis 스타일로 출력한다.
-명령어 이름은 대소문자를 무시하고, 키/값은 대소문자를 구분한다.
-"""
-
 from __future__ import annotations
-
-import sys
 
 from store import MiniRedisStore, OutOfMemoryError
 
@@ -15,6 +7,8 @@ PROMPT = "mini-redis> "
 # 에러 메시지 상수(PRD 출력 포맷 그대로).
 _ERR_INTEGER = "(error) ERR value is not an integer or out of range"
 _ERR_OOM = "(error) OOM command not allowed when used_memory > 'maxmemory'"
+_ERR_ARGS = "(error) ERR wrong number of arguments for '{}' command"
+_ERR_UNKNOWN = "(error) ERR unknown command '{}'"
 
 
 class CommandError(Exception):
@@ -64,9 +58,7 @@ def _parse_int(text: str) -> int:
 
 def _wrong_args(command: str) -> CommandError:
     """인자 개수 오류를 입력한 명령 이름 그대로 생성한다."""
-    return CommandError(
-        f"(error) ERR wrong number of arguments for '{command}' command"
-    )
+    return CommandError(_ERR_ARGS.format(command))
 
 
 def _format_keys(keys: list[str]) -> str:
@@ -144,7 +136,7 @@ def dispatch(store: MiniRedisStore, command: str, args: list[str]) -> str:
         used, maxmemory, evicted = store.info_memory()
         return f"used_memory:{used}\nmaxmemory:{maxmemory}\nevicted_keys:{evicted}"
 
-    raise CommandError(f"(error) ERR unknown command '{command}'")
+    raise CommandError(_ERR_UNKNOWN.format(command))
 
 
 def run_line(store: MiniRedisStore, line: str) -> str | None:

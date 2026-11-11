@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 480" width="700" height="480" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif" font-size="14">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#475569"/>
+    </marker>
+  </defs>
+  <rect width="700" height="480" fill="#ffffff"/>
+
+  <!-- headers -->
+  <text x="85" y="40" text-anchor="middle" font-weight="700" fill="#1e3a8a">버킷 배열</text>
+  <text x="420" y="40" text-anchor="middle" font-weight="700" fill="#7c2d12">버킷마다 이중 연결 리스트 (체인)</text>
+
+  <!-- buckets -->
+  <g stroke="#2563eb" stroke-width="2" fill="#dbeafe">
+    <rect x="40" y="60" width="90" height="40"/>
+    <rect x="40" y="110" width="90" height="40"/>
+    <rect x="40" y="160" width="90" height="40"/>
+    <rect x="40" y="210" width="90" height="40"/>
+    <rect x="40" y="260" width="90" height="40"/>
+    <rect x="40" y="310" width="90" height="40"/>
+    <rect x="40" y="360" width="90" height="40"/>
+  </g>
+  <g text-anchor="middle" fill="#1e3a8a">
+    <text x="85" y="86">0</text>
+    <text x="85" y="136">1</text>
+    <text x="85" y="186">2</text>
+    <text x="85" y="236">3</text>
+    <text x="85" y="286">4</text>
+    <text x="85" y="336">…</text>
+    <text x="85" y="386">15</text>
+  </g>
+
+  <!-- empty buckets -->
+  <g fill="#94a3b8" font-size="13">
+    <text x="150" y="86">None</text>
+    <text x="150" y="186">None</text>
+    <text x="150" y="286">None</text>
+    <text x="150" y="386">None</text>
+  </g>
+
+  <!-- bucket 1: one node -->
+  <line x1="130" y1="130" x2="198" y2="130" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="200" y="110" width="170" height="40" rx="8" fill="#ffedd5" stroke="#ea580c" stroke-width="2"/>
+  <text x="285" y="135" text-anchor="middle" fill="#7c2d12">("age", _Entry)</text>
+
+  <!-- bucket 3: two nodes (collision) -->
+  <line x1="130" y1="230" x2="198" y2="230" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="200" y="210" width="170" height="40" rx="8" fill="#ffedd5" stroke="#ea580c" stroke-width="2"/>
+  <text x="285" y="235" text-anchor="middle" fill="#7c2d12">("name", _Entry)</text>
+  <line x1="372" y1="230" x2="428" y2="230" stroke="#475569" stroke-width="2" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+  <rect x="430" y="210" width="170" height="40" rx="8" fill="#ffedd5" stroke="#ea580c" stroke-width="2"/>
+  <text x="515" y="235" text-anchor="middle" fill="#7c2d12">("id", _Entry)</text>
+  <text x="420" y="270" text-anchor="middle" fill="#ea580c" font-size="12">같은 버킷 = 충돌, 체인 뒤에 추가</text>
+
+  <!-- footer -->
+  <rect x="40" y="420" width="560" height="44" rx="8" fill="#f1f5f9" stroke="#cbd5e1"/>
+  <text x="320" y="447" text-anchor="middle" fill="#334155">인덱스 = 해시값 % 버킷 수 → 그 버킷 체인에서 키를 비교해 탐색</text>
+</svg>
