@@ -48,9 +48,16 @@ class MiniRedisStore:
     # ------------------------------------------------------------------
     # 내부 헬퍼
     # ------------------------------------------------------------------
+    def _clear_ttl(self, key: str, entry: _Entry) -> None:
+        """엔트리의 TTL을 해제하고 힙의 해당 항목도 함께 제거한다."""
+        if entry.expire_at is not None:
+            self._ttl_heap.remove((entry.expire_at, key))
+            entry.expire_at = None
+
     def _drop(self, key: str, entry: _Entry) -> None:
-        """데이터·LRU·메모리에서 키를 함께 제거한다(evicted_keys는 증가시키지 않음)."""
+        """데이터·LRU·TTL 힙·메모리에서 키를 함께 제거한다(evicted_keys는 증가시키지 않음)."""
         self._used_memory -= _bytelen(key) + _bytelen(entry.value)
+        self._clear_ttl(key, entry)
         self._lru.remove_node(entry.lru_node)
         self._table.remove(key)
 
@@ -58,7 +65,8 @@ class MiniRedisStore:
         """만료 시각이 지난 키를 힙에서 찾아 적극적으로 제거한다.
 
         모든 키 기반 명령 실행 전에 호출해, 만료된 키를 '없는 키'처럼 다룬다.
-        힙에는 과거의 stale 항목이 남을 수 있으므로 entry.expire_at과 대조해 검증한다.
+        삭제·덮어쓰기·재설정 때 힙 항목을 함께 지우므로 힙에는 유효한 항목만 남는다.
+        그래도 방어적으로 entry.expire_at과 대조해 검증한다.
         """
         now = self._clock()
         while self._ttl_heap.size() > 0:
@@ -70,8 +78,10 @@ class MiniRedisStore:
 
             self._ttl_heap.pop()
             entry = self._table.get(key)
-            # 키가 아직 살아있고, 이 힙 항목이 현재 TTL과 일치할 때만 실제 만료.
+            # 방어적 검증: 키가 살아있고 현재 TTL과 일치할 때만 실제 만료.
             if entry is not None and entry.expire_at == expire_at:
+                # 이 항목은 이미 pop했으므로 _drop이 힙을 다시 탐색하지 않게 TTL만 비운다.
+                entry.expire_at = None
                 self._drop(key, entry)
 
     def _evict_if_needed(self) -> None:
@@ -106,7 +116,7 @@ class MiniRedisStore:
             # 덮어쓰기: 메모리 재계산, TTL 초기화, LRU front로 이동.
             self._used_memory -= _bytelen(key) + _bytelen(existing.value)
             existing.value = value
-            existing.expire_at = None
+            self._clear_ttl(key, existing)
             self._used_memory += entry_size
             self._lru.move_to_front(existing.lru_node)
         else:
@@ -131,7 +141,7 @@ class MiniRedisStore:
         entry = self._table.get(key)
         if entry is None:
             return 0
-        self._drop(key, entry)  # 힙의 TTL 항목은 stale 처리되어 자연히 무시된다.
+        self._drop(key, entry)  # 데이터·LRU·TTL 힙에서 함께 제거된다.
         return 1
 
     def exists(self, key: str) -> int:
@@ -179,6 +189,7 @@ class MiniRedisStore:
             self._drop(key, entry)
             return 1
 
+        self._clear_ttl(key, entry)  # 이전 TTL 항목을 힙에서 먼저 제거한다.
         expire_at = self._clock() + seconds
         entry.expire_at = expire_at
         self._ttl_heap.push((expire_at, key))

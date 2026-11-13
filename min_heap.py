@@ -27,6 +27,24 @@ class MinHeap:
             return None
         return self._heap[0]
 
+    def remove(self, item: tuple[float, str]) -> bool:
+        """항목 하나를 찾아 제거한다. 제거했으면 True, 없으면 False를 반환한다.
+
+        선형 탐색이라 O(n)이다. 마지막 항목을 빈자리로 옮긴 뒤 위·아래로 복구한다.
+        """
+        try:
+            index = self._heap.index(item)
+        except ValueError:
+            return False
+
+        last = self._heap.pop()
+        if index < len(self._heap):
+            self._heap[index] = last
+            # 옮겨 온 값이 부모보다 작을 수도, 자식보다 클 수도 있어 양쪽을 모두 복구한다.
+            self._heapify_up(index)
+            self._heapify_down(index)
+        return True
+
     def size(self) -> int:
         """저장된 항목 수를 반환한다."""
         return len(self._heap)

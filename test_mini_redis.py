@@ -161,6 +161,70 @@ def test_real_ttl_countdown() -> None:
     print("실제 TTL 카운트다운 확인: 1.1초 후 만료\n")
 
 
+def test_heap_remove() -> None:
+    """MinHeap.remove는 임의 위치 항목을 지우고 힙 순서를 유지한다."""
+    from min_heap import MinHeap
+
+    heap = MinHeap()
+    for item in [(5.0, "e"), (1.0, "a"), (3.0, "c"), (2.0, "b"), (4.0, "d"), (6.0, "f")]:
+        heap.push(item)
+
+    assert heap.remove((3.0, "c")) is True
+    assert heap.remove((99.0, "zz")) is False
+    assert heap.size() == 5
+
+    popped = []
+    while heap.size() > 0:
+        popped.append(heap.pop())
+    assert popped == [(1.0, "a"), (2.0, "b"), (4.0, "d"), (5.0, "e"), (6.0, "f")], popped
+    print("힙 remove 확인: 중간 항목 제거 후에도 순서 유지\n")
+
+
+def test_heap_cleaned_immediately() -> None:
+    """DEL·덮어쓰기·재설정·메모리 제거 때 TTL 힙 항목이 즉시 사라진다."""
+    clock = FakeClock()
+    store = MiniRedisStore(clock=clock)
+
+    # DEL.
+    run_line(store, "SET a 1")
+    run_line(store, "EXPIRE a 100")
+    assert store._ttl_heap.size() == 1
+    run_line(store, "DEL a")
+    assert store._ttl_heap.size() == 0
+
+    # SET 덮어쓰기(TTL 초기화).
+    run_line(store, "SET b 1")
+    run_line(store, "EXPIRE b 100")
+    run_line(store, "SET b 2")
+    assert store._ttl_heap.size() == 0
+
+    # EXPIRE 재설정: 항목은 항상 하나만 유지.
+    run_line(store, "SET c 1")
+    run_line(store, "EXPIRE c 100")
+    clock.advance(1)
+    run_line(store, "EXPIRE c 200")
+    assert store._ttl_heap.size() == 1
+    assert run_line(store, "TTL c") == "(integer) 200"
+
+    # 메모리 초과로 LRU 제거되는 키.
+    run_line(store, "DEL c")
+    run_line(store, "CONFIG SET maxmemory 5")
+    run_line(store, "SET x 1")
+    run_line(store, "EXPIRE x 100")
+    run_line(store, "SET y 1")
+    run_line(store, "SET z 1")  # 6바이트 초과 -> x(가장 오래됨) 제거.
+    assert run_line(store, "EXISTS x") == "(integer) 0"
+    assert store._ttl_heap.size() == 0
+
+    # 만료 후에도 힙이 비워진다.
+    run_line(store, "CONFIG SET maxmemory 0")
+    run_line(store, "EXPIRE y 3")
+    clock.advance(3)
+    assert run_line(store, "GET y") == "(nil)"
+    assert store._ttl_heap.size() == 0
+    print("TTL 힙 즉시 정리 확인: DEL/덮어쓰기/재설정/LRU 제거/만료\n")
+
+
 if __name__ == "__main__":
     print("=== PRD 실행 예시 ===")
     test_prd_execution_example()
@@ -174,4 +238,7 @@ if __name__ == "__main__":
     test_lru_order_on_get()
     print("=== 실제 TTL 카운트다운 ===")
     test_real_ttl_countdown()
+    print("=== 힙 remove / 즉시 정리 ===")
+    test_heap_remove()
+    test_heap_cleaned_immediately()
     print("ALL TESTS PASSED")
